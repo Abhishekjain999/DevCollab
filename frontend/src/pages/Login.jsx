@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { LogIn, Code2, Lock, Mail, ArrowRight, Loader2, Sparkles, Shield, User } from 'lucide-react';
+import { LogIn, Code2, Lock, Mail, ArrowRight, Loader2, Sparkles, Shield, User, Users } from 'lucide-react';
 import useAuth from '../hooks/useAuth';
 
 export default function Login() {
