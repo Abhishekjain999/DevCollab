@@ -317,7 +317,23 @@ print('__DEVCOLLAB_OUTPUT_END__')
   }
 
   if (lang === 'java') {
-    const sanitizedCode = userCode.replace(/public\s+class\s+Solution/g, 'class Solution');
+    // Separate user imports from class declaration so imports are always at the top of SolutionRunner.java
+    const userImports = [];
+    const nonImportLines = [];
+
+    userCode.split('\n').forEach((line) => {
+      const trimmed = line.trim();
+      if (trimmed.startsWith('import ') && trimmed.endsWith(';')) {
+        userImports.push(trimmed);
+      } else if (!trimmed.startsWith('package ')) {
+        nonImportLines.push(line);
+      }
+    });
+
+    const sanitizedCode = nonImportLines
+      .join('\n')
+      .replace(/public\s+class\s+Solution/g, 'class Solution');
+
     const testCasesArray = testCases.map((tc) => {
       let args = [];
       if (typeof tc.input === 'object' && tc.input !== null && !Array.isArray(tc.input)) {
@@ -334,6 +350,7 @@ print('__DEVCOLLAB_OUTPUT_END__')
     return `
 import java.util.*;
 import java.lang.reflect.*;
+${userImports.join('\n')}
 
 public class SolutionRunner {
     static String escapeJson(String s) {

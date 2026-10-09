@@ -194,6 +194,28 @@ export default function OutputPanel({
                   )}
                 </div>
 
+                {runResults.errorMessage && (
+                  <div
+                    style={{
+                      background: 'rgba(244, 63, 94, 0.1)',
+                      border: '1px solid rgba(244, 63, 94, 0.3)',
+                      color: '#fda4af',
+                      padding: '0.75rem 1rem',
+                      borderRadius: 'var(--radius-md)',
+                      marginBottom: '1rem',
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: '0.8rem',
+                      whiteSpace: 'pre-wrap',
+                      wordBreak: 'break-word',
+                    }}
+                  >
+                    <div style={{ fontWeight: 600, marginBottom: '0.35rem', display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#f43f5e' }}>
+                      <AlertTriangle size={14} /> Execution / Compilation Error:
+                    </div>
+                    {runResults.errorMessage}
+                  </div>
+                )}
+
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                   {runResults.testCases?.map((t, idx) => (
                     <div
