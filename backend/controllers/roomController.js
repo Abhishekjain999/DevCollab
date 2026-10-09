@@ -2,6 +2,7 @@ const Room = require('../models/Room');
 const Problem = require('../models/Problem');
 const User = require('../models/User');
 const generateRoomId = require('../utils/generateRoomId');
+const { allProblems } = require('../seed/problemsData');
 
 /**
  * @route   POST /api/rooms
@@ -28,19 +29,40 @@ const createRoom = async (req, res, next) => {
       });
     }
 
-    // Find problem
+    // Find problem (by MongoDB _id, by slug, or by title)
     let problem = null;
     if (problemId) {
-      if (problemId.match(/^[0-9a-fA-F]{24}$/)) {
+      if (typeof problemId === 'string' && problemId.match(/^[0-9a-fA-F]{24}$/)) {
         problem = await Problem.findById(problemId);
-      } else {
-        problem = await Problem.findOne({ slug: problemId.toLowerCase() });
+      }
+      if (!problem) {
+        problem = await Problem.findOne({ slug: String(problemId).toLowerCase() });
+      }
+      if (!problem) {
+        problem = await Problem.findOne({ title: new RegExp(`^${problemId}$`, 'i') });
       }
     }
 
-    // If no problem provided, default to Two Sum
+    // Default to two-sum if no problem selected
     if (!problem) {
       problem = await Problem.findOne({ slug: 'two-sum' });
+    }
+
+    // Auto-recovery: if DB is unseeded or missing problem, auto-seed it on the fly
+    if (!problem && allProblems && allProblems.length > 0) {
+      const match = allProblems.find(
+        (p) =>
+          p.slug === String(problemId || '').toLowerCase() ||
+          p.title?.toLowerCase() === String(problemId || '').toLowerCase()
+      ) || allProblems[0];
+
+      if (match) {
+        let existing = await Problem.findOne({ slug: match.slug });
+        if (!existing) {
+          existing = await Problem.create(match);
+        }
+        problem = existing;
+      }
     }
 
     if (!problem) {
