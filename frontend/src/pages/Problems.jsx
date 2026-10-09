@@ -46,6 +46,8 @@ export default function Problems() {
 
   const difficulties = ['ALL', 'EASY', 'MEDIUM', 'HARD'];
 
+  const [catalogStats, setCatalogStats] = useState({ easy: 26, medium: 42, hard: 2 });
+
   const fetchProblems = async () => {
     setLoading(true);
     setError(null);
@@ -58,6 +60,13 @@ export default function Problems() {
       const res = await problemService.getProblems(params);
       if (res.success && res.data?.problems) {
         setProblems(res.data.problems);
+        if (selectedCategory === 'ALL' && selectedDifficulty === 'ALL' && !searchQuery.trim()) {
+          setCatalogStats({
+            easy: res.data.problems.filter((p) => p.difficulty === 'EASY').length,
+            medium: res.data.problems.filter((p) => p.difficulty === 'MEDIUM').length,
+            hard: res.data.problems.filter((p) => p.difficulty === 'HARD').length,
+          });
+        }
         if (res.data.problems.length > 0 && !selectedProblem) {
           setSelectedProblem(res.data.problems[0]);
         }
@@ -107,9 +116,9 @@ export default function Problems() {
   };
 
   // Aggregated Stats
-  const easyCount = problems.filter((p) => p.difficulty === 'EASY').length;
-  const mediumCount = problems.filter((p) => p.difficulty === 'MEDIUM').length;
-  const hardCount = problems.filter((p) => p.difficulty === 'HARD').length;
+  const easyCount = catalogStats.easy || 26;
+  const mediumCount = catalogStats.medium || 42;
+  const hardCount = catalogStats.hard || 2;
 
   return (
     <div style={{ minHeight: '100vh', padding: '2.5rem 0 4rem' }}>
