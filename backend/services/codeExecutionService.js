@@ -697,6 +697,29 @@ ${sanitizedCode}
   return userCode;
 };
 
+const resolveCommand = (lang, defaultCmd) => {
+  if (process.platform === 'win32') {
+    if (lang === 'java') {
+      const candidates = [
+        process.env.JAVA_HOME ? path.join(process.env.JAVA_HOME, 'bin', 'java.exe') : null,
+        'C:\\Program Files\\Eclipse Adoptium\\jdk-21.0.2.13-hotspot\\bin\\java.exe',
+        path.join(process.env.USERPROFILE || '', 'AppData', 'Local', 'Programs', 'Eclipse Adoptium', 'jdk-17.0.10.7-hotspot', 'bin', 'java.exe'),
+        'java.exe',
+        'java',
+      ].filter(Boolean);
+
+      for (const cand of candidates) {
+        if (cand.includes('\\')) {
+          try {
+            if (require('fs').existsSync(cand)) return cand;
+          } catch {}
+        }
+      }
+    }
+  }
+  return defaultCmd;
+};
+
 /**
  * Execute code using local sandboxed process
  */
@@ -721,10 +744,12 @@ const executeLocally = async (language, wrappedCode, testCases, startTime) => {
   try {
     await fs.writeFile(tempFilePath, wrappedCode, 'utf8');
 
+    const cmd = resolveCommand(lang, langConfig.command);
     return await new Promise((resolve) => {
-      const child = spawn(langConfig.command, langConfig.args(tempFilePath), {
+      const child = spawn(cmd, langConfig.args(tempFilePath), {
         timeout: 8000,
         maxBuffer: 2 * 1024 * 1024,
+        shell: false,
         env: { ...process.env, NODE_ENV: 'test' },
       });
 
